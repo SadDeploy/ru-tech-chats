@@ -1,34 +1,36 @@
-import fs from './lib/fs';
-import data from './../../data.json';
-import task from './lib/task';
+import fs from 'fs';
+import path from 'path';
+import data from '../data.json';
 
-const table = (data) => {
-  return data.map(row).join('\n');
-}
+const table = (data) =>
+  data
+    .sort((d1, d2) => d1.name > d2.name)
+    .map(row)
+    .join('\n');
 
-const row = (rowData) => {
-  return `| **${rowData.name}** | ${ community(rowData.community) } | ${rowData.description || ''} | ${ links(rowData.links) } | ${rowData.comments || ''} |`;
-}
+const row = (rowData) =>
+  `| **${rowData.name}** | ${ community(rowData.community) } | ${rowData.description || ''} | ${ links(rowData.links) } | ${rowData.comments || ''} |`;
 
-const link = (name, url) => {
-  if (url) return `${name}: ${url}`
-  return ''
-}
+const link = (name, url) =>
+  url ? `${name}: ${url}` : ''
 
-const links = (list) => {
-  return [
+const links = (list) =>
+  [
     link('Gitter', list.gitter),
     link('Slack', list.slack),
     link('Skype', list.skype),
     link('Telegram', list.telegram),
     link('Other', list.other)
-  ].filter( x => x.length > 0 ).join('<br>')
-}
+  ].filter(x => x.length > 0).join('<br>')
 
 const community = comm => {
   if (!comm) return ''
-  if (!comm.icon) return `[${comm.name}](${comm.link})`
-  else return `[![${comm.name}](${comm.icon})](${comm.link}) [${comm.name}](${comm.link})`
+  if (typeof comm === 'string') return comm
+  if (comm && comm.name) {
+    if (!comm.link) return comm.name
+    if (!comm.icon) return `[${comm.name}](${comm.link})`
+    else return `[![${comm.name}](${comm.icon})](${comm.link}) [${comm.name}](${comm.link})`
+  }
 }
 
 const content = `Это - список русскоязычных чатов об IT.
@@ -57,8 +59,8 @@ const content = `Это - список русскоязычных чатов о�
 ${table(data)}
 `
 
-export default task( async function generate_readme() {
-  return fs.writeFile('../README.md', content);
-})
-
+console.log('>>> Generating README.md <<<')
+console.log(content)
+fs.writeFileSync(path.join(process.cwd(), 'README.md'), content);
+console.log('>>> 🏁 Done generating README.md <<<')
 
